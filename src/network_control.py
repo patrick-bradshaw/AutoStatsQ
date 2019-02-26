@@ -1090,22 +1090,22 @@ def main():
                             print('response not found')
                             #    continue
 
-                            else:
+                            #else:
 
-                                for tr in trs_syn:
-                                    # adding zeros at beginning of trace for taper in
-                                    # tr.transfer
-                                    tr.extend(tmin=tr.tmin-transf_taper)
-                                    tr.transfer(
-                                                tfade=transf_taper,
-                                                freqlimits=freqlim,
-                                                invert=False)
-                                    net, sta, loc, cha = tr.nslc_id
+                            for tr in trs_syn:
+                                # adding zeros at beginning of trace for taper in
+                                # tr.transfer
+                                tr.extend(tmin=tr.tmin-transf_taper)
+                                tr.transfer(
+                                            tfade=transf_taper,
+                                            freqlimits=freqlim,
+                                            invert=False)
+                                net, sta, loc, cha = tr.nslc_id
 
-                                    filename = '%s/syn_%s_%s_%s_%s.mseed'\
-                                             % (dir_syn_ev, net, sta, cha, ev_t_str)
-                                    io.save(tr, filename, format='mseed')
-                                    print('trace saved', filename)
+                                filename = '%s/syn_%s_%s_%s_%s.mseed'\
+                                         % (dir_syn_ev, net, sta, cha, ev_t_str)
+                                io.save(tr, filename, format='mseed')
+                                print('trace saved', filename)
 
 
         ''' 7. Gain factors '''
