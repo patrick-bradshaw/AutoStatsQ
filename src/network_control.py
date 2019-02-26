@@ -1046,9 +1046,11 @@ def main():
                     #ev.duration = None
                     ev.time = ev.time + ev.duration/2
                     source = gf.MTSource.from_pyrocko_event(ev)
+                    print(source)
 
                     for st in all_stations:
-                        print(st.station)
+                        print('net, st, loc, cha:', st.network, st.station, st.location, st.channel)
+                        print(st.network)
                         #if st.station not in st_liste_check:
                         #    continue                        
                         targets = []
@@ -1062,7 +1064,9 @@ def main():
                                     lat=st.lat,
                                     lon=st.lon,
                                     store_id=store_id)
+                            print('target', target)
                             azi, _ = target.azibazi_to(ev)
+                            print(azi)
 
                             if cha == 'R':
                                 target.azimuth = azi - 180.
@@ -1079,6 +1083,7 @@ def main():
                             targets.append(target)
 
                             try:
+
                                 response = engine.process(source, targets)
                                 trs_syn = response.pyrocko_traces()
 
