@@ -52,7 +52,6 @@ class Section():
 
     def finish(self, method, fband, taper, ev_counter):
         print('METHOD', method)
-        print(len(method))
         if len(method) == 2:
             reference_nsl = method[1][1]
             reference_nslc = list(filter(
@@ -76,15 +75,11 @@ class Section():
             self.finished = True
 
         elif method == 'syn_comp':
-            #print(self.max_tr_syn)
-            #print(self.max_tr)
             for nslc_id, maxA in self.max_tr.items():
                 try:
-                    #print(nslc_id[0:2])
                     self.relative_scalings[nslc_id] = maxA / self.max_tr_syn[nslc_id[0:2]]
                 except:
                     print('syn data missing:', nslc_id[0:2])
-            #print(self.relative_scalings)
             self.finished = True
 
 
@@ -174,7 +169,8 @@ class AutoGain():
                     unskipped += 1
                 selector = lambda tr: (s.network, s.station, self.component)\
                                    == (tr.network, tr.station, tr.channel) 
-
+                #if event.time > util.str_to_time('2018-11-01 00:00:00.000'):
+                #    self.data_pile.snuffle()
                 tr_generator = self.data_pile.chopper(tmin=arrival -
                                                       twd[0],
                                                       tmax=arrival +
@@ -192,6 +188,7 @@ class AutoGain():
                 for tr in tr_generator:
                     if not len(tr) > 1 and tr:
                         tr = tr[0]
+                        #tr.snuffle()
                         if len(tr.ydata) > 0 and num.max(num.abs(tr.get_ydata())) != 0:
                             dtype = type(tr.ydata[0])
                             tr.ydata -= dtype(tr.get_ydata().mean())
@@ -213,7 +210,7 @@ class AutoGain():
 
                             if num.max(num.abs(tr.get_ydata())) != 0:
                                 section.max_tr[tr.nslc_id] = num.max(num.abs(tr.get_ydata()))
-                                tr_nslc_ids.append(tr.nslc_id)                            
+                                tr_nslc_ids.append(tr.nslc_id)    
 
 
                     else:
@@ -221,13 +218,11 @@ class AutoGain():
                             tt = t#[0]
                             if len(tt.ydata) > 0 and num.max(num.abs(tt.get_ydata())) != 0:
                                 dtype = type(tt.ydata[0])
-                                #print(tr.ydata, type(tr.ydata))
                                 tt.ydata -= dtype(tt.get_ydata().mean())
                                 st_s = num.argmax(num.abs(tt.ydata))-10
                                 snr = num.mean([y*y for y in tt.ydata[st_s:st_s+60]])/\
                                       num.mean([y*y for y in tt.ydata[0:60]])
                                       
-                                # print('SNR', snr) 
                                 if snr < self.snr_thresh:
                                     continue                               
                                 tt.highpass(fband['order'], fband['corner_hp'])
@@ -250,19 +245,11 @@ class AutoGain():
                             if len(tr.ydata) > 0 and num.max(num.abs(tr.get_ydata())) != 0:
                                 dtype = type(tr.ydata[0])
                                 tr.ydata -= dtype(tr.get_ydata().mean())
-                                # make SNR threshold here!
-                                st_s = num.argmax(num.abs(tr.ydata))-10
-                                snr = num.mean([y*y for y in tr.ydata[st_s:st_s+60]])/\
-                                      num.mean([y*y for y in tr.ydata[0:60]])
-                                if snr < self.snr_thresh:
-                                    continue
-                                # mean(A*A_signal)/mean(A*A_noise)
                                 tr.highpass(fband['order'], fband['corner_hp'])
                                 tr.taper(taper, chop=False)
                                 tr.lowpass(fband['order'], fband['corner_lp'])
                                 
                                 if debug == True:
-                                    print('SNR', snr)
                                     print('arrival time', util.time_to_str(arrival))
                                     trace.snuffle(tr, markers=[pm.Marker(nslc_ids=[tr.nslc_id], tmin=arrival, tmax=arrival+3)])
 
@@ -276,13 +263,11 @@ class AutoGain():
                                 tt = t#[0]
                                 if len(tt.ydata) > 0 and num.max(num.abs(tt.get_ydata())) != 0:
                                     dtype = type(tt.ydata[0])
-                                    #print(tr.ydata, type(tr.ydata))
                                     tt.ydata -= dtype(tt.get_ydata().mean())
                                     st_s = num.argmax(num.abs(tt.ydata))-10
                                     snr = num.mean([y*y for y in tt.ydata[st_s:st_s+60]])/\
                                           num.mean([y*y for y in tt.ydata[0:60]])
                                           
-                                    # print('SNR', snr) 
                                     if snr < self.snr_thresh:
                                         continue                               
                                     tt.highpass(fband['order'], fband['corner_hp'])

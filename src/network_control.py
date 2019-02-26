@@ -1049,8 +1049,7 @@ def main():
                     print(source)
 
                     for st in all_stations:
-                        print('net, st, loc, cha:', st.network, st.station, st.location, st.channel)
-                        print(st.network)
+                        print('net, st:', st.network, st.station)
                         #if st.station not in st_liste_check:
                         #    continue                        
                         targets = []
