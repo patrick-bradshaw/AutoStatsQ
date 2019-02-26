@@ -1023,6 +1023,8 @@ def main():
             store_id = synthsconf.store_id
             engine = gf.LocalEngine(store_superdirs=
                                    [synthsconf.engine_path])
+            print('engine path:', synthsconf.engine_path)
+            print('engine', engine)
             os.makedirs(data_dir+'synthetics/', exist_ok=True)
             loc = '0'
             for key, subset_catalog in subsets_events.items(): 
@@ -1046,6 +1048,7 @@ def main():
                     source = gf.MTSource.from_pyrocko_event(ev)
 
                     for st in all_stations:
+                        print(st.station)
                         #if st.station not in st_liste_check:
                         #    continue                        
                         targets = []
@@ -1080,6 +1083,7 @@ def main():
                                 trs_syn = response.pyrocko_traces()
 
                             except:
+                                print('response not found')
                                 continue
 
                             else:
@@ -1097,6 +1101,7 @@ def main():
                                     filename = '%s/syn_%s_%s_%s_%s.mseed'\
                                              % (dir_syn_ev, net, sta, cha, ev_t_str)
                                     io.save(tr, filename, format='mseed')
+                                    print('trace saved', filename)
 
 
         ''' 7. Gain factors '''
