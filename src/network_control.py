@@ -1083,8 +1083,8 @@ def main():
 
                             #try:
 
-                                response = engine.process(source, targets)
-                                trs_syn = response.pyrocko_traces()
+                            response = engine.process(source, targets)
+                            trs_syn = response.pyrocko_traces()
 
                             #except:
                             print('response not found')
