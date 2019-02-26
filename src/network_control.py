@@ -1046,10 +1046,10 @@ def main():
                     #ev.duration = None
                     ev.time = ev.time + ev.duration/2
                     source = gf.MTSource.from_pyrocko_event(ev)
-                    print(source)
+                    #print(source)
 
                     for st in all_stations:
-                        print('net, st:', st.network, st.station)
+                        #print('net, st:', st.network, st.station)
                         #if st.station not in st_liste_check:
                         #    continue                        
                         targets = []
@@ -1063,9 +1063,9 @@ def main():
                                     lat=st.lat,
                                     lon=st.lon,
                                     store_id=store_id)
-                            print('target', target)
+                            #print('target', target)
                             azi, _ = target.azibazi_to(ev)
-                            print(azi)
+                            #print(azi)
 
                             if cha == 'R':
                                 target.azimuth = azi - 180.
@@ -1081,31 +1081,31 @@ def main():
 
                             targets.append(target)
 
-                            #try:
+                            try:
 
-                            response = engine.process(source, targets)
-                            trs_syn = response.pyrocko_traces()
+                                response = engine.process(source, targets)
+                                trs_syn = response.pyrocko_traces()
 
-                            #except:
-                            print('response not found')
-                            #    continue
+                            except:
+                                print('pyrocko engine error, out of bounds?')
+                                continue
 
-                            #else:
+                            else:
 
-                            for tr in trs_syn:
-                                # adding zeros at beginning of trace for taper in
-                                # tr.transfer
-                                tr.extend(tmin=tr.tmin-transf_taper)
-                                tr.transfer(
-                                            tfade=transf_taper,
-                                            freqlimits=freqlim,
-                                            invert=False)
-                                net, sta, loc, cha = tr.nslc_id
+                                for tr in trs_syn:
+                                    # adding zeros at beginning of trace for taper in
+                                    # tr.transfer
+                                    tr.extend(tmin=tr.tmin-transf_taper)
+                                    tr.transfer(
+                                                tfade=transf_taper,
+                                                freqlimits=freqlim,
+                                                invert=False)
+                                    net, sta, loc, cha = tr.nslc_id
 
-                                filename = '%s/syn_%s_%s_%s_%s.mseed'\
-                                         % (dir_syn_ev, net, sta, cha, ev_t_str)
-                                io.save(tr, filename, format='mseed')
-                                print('trace saved', filename)
+                                    filename = '%s/syn_%s_%s_%s_%s.mseed'\
+                                             % (dir_syn_ev, net, sta, cha, ev_t_str)
+                                    io.save(tr, filename, format='mseed')
+                                    print('trace saved', filename)
 
 
         ''' 7. Gain factors '''
