@@ -1081,14 +1081,14 @@ def main():
 
                             targets.append(target)
 
-                            try:
+                            #try:
 
                                 response = engine.process(source, targets)
                                 trs_syn = response.pyrocko_traces()
 
-                            except:
-                                print('response not found')
-                                continue
+                            #except:
+                            print('response not found')
+                            #    continue
 
                             else:
 
