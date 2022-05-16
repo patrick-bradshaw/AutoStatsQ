@@ -104,6 +104,8 @@ def generate_default_config():
                               ccmin=0.80,
                               plot_heatmap=False,
                               plot_distr=False,
+                              plot_stackdistr=False,
+                              plot_bootstrapstack=False, #[n_bootstrap_chains, n_events_per_chain]
                               plot_orient_map_fromfile=False,
                               plot_angles_vs_events=False,
                               debug_mode=False)

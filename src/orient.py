@@ -496,7 +496,7 @@ def stack_ccdist(cc_i_ev_vs_rota, catalog, rot_angles, st, loc, dir_ro, ccmin):
     logs.debug("n_stack = %s" % str(n_stack))
     logs.debug("cc_i_ev_vs_rota is of type: %s" % str(type(cc_i_ev_vs_rota)))
 
-    orientstackpath = os.path.join(dir_ro, '%s_%s_cc_values.' % (st.network, st.station))
+    orientstackpath = os.path.join(dir_ro, '%s_%s_cc_values.csv' % (st.network, st.station))
     num.savetxt(orientstackpath, masked, delimiter=",")
     
     logs.info("Saved stacked orient cross correlations here: %s " % orientstackpath)
@@ -519,11 +519,61 @@ def stack_ccdist(cc_i_ev_vs_rota, catalog, rot_angles, st, loc, dir_ro, ccmin):
     fig.savefig(os.path.join(dir_ro, '%s_%s_%s_stackdistr.png' % (st.network, st.station, loc)))
     plt.close(fig)
 
+def bootstrap_ccdist(st, loc, dir_ro, n_bootstrap_chains, n_ev_boot):
+    """
+    ev_ang_array is [events][angles]
+    """
+    logs = logging.getLogger('orient_bootstrap')
+    
+    ev_ang_array = num.genfromtxt(os.path.join(dir_ro, '%s_%s_cc_values.csv' % (st.network, st.station)), delimiter=',')
+    n_bootstrap_chains = int(n_bootstrap_chains)
+    n_ev_boot = int(n_ev_boot)
+
+    n_ev = ev_ang_array.shape[0]
+
+    maximums = []
+    angles = []
+
+    for iterations in range(n_bootstrap_chains): # boostrap chains
+        stack = [0] * 360
+        # get list of random indices without doublecounting
+        ind = list(num.random.permutation(num.arange(0,n_ev))[:n_ev_boot])
+        for i in ind:  # n ev per bootstrap
+            subset = ev_ang_array[i]
+            stack = stack + subset
+        stack = stack / n_ev_boot
+                
+        logs.debug("Stack is: %s" %str(stack.shape))
+        maximums.append(max(stack))
+        angles.append(num.argmax(stack) - 180)
+
+    cc_mean = num.mean(maximums)
+    cc_stddev = num.std(maximums)
+
+    ang_mean = num.mean(angles)
+    ang_stddev = num.std(angles)
+
+    """
+    Plotting
+    """
+    fig = plt.figure()
+    ax = plt.subplot()
+    plt.title(label = "Stacked CC Bootstrap for %s" % st.station)
+    ax.set_xlabel('Correction Angle [$\degree$]')
+    ax.set_ylabel('Stacked CC')
+    ax.scatter(angles, maximums, alpha = 0.15, label = "CC Mean = " + str(cc_mean) + "\nCC Std Dev = " + str(cc_stddev) + "\nAng Mean = " + str(ang_mean) + "\nAng Std Dev = " + str(ang_stddev) + "\nUsing " + str(n_ev) + " events")
+    plt.xlim(-abs((max(angles, key = abs))) - 1, (abs(max(angles, key = abs))) + 1)
+    plt.ylim(min(maximums) - 0.01,1)
+    #tick_start, tick_end = ax.get_xlim()
+    #ax.xaxis.set_ticks(np.arange(tick_start, tick_end + 1.0, 1.0))
+    plt.legend()
+    fig.savefig(os.path.join(dir_ro, '%s_%s_%s_bootstrapstack.png' % (st.network, st.station, loc)))
+    plt.close()
 
 def prep_orient(datapath, st, i_st, nst, loc, catalog, dir_ro, v_rayleigh,
                 bp, dt_start, dt_stop, ccmin=0.80,
                 plot_heatmap=False,  plot_distr=False, plot_stackdistr=False,
-                debug=False):
+                plot_bootstrapstack=False, debug=False):
     """
     Perform orientation analysis using Rayleigh waves, main function.
 
@@ -665,6 +715,11 @@ def prep_orient(datapath, st, i_st, nst, loc, catalog, dir_ro, v_rayleigh,
             logs.debug('Plotting stacked distribution for station %s.%s' % (st.network, st.station))
             stack_ccdist(cc_i_ev_vs_rota, catalog,
                                     rot_angles, st, loc, dir_ro, ccmin)
+        if plot_bootstrapstack:
+            logs.debug('Plotting bootstrap of max cc at angle station %s.%s' % (st.network, st.station))
+            n_bootstrap_chains = plot_bootstrapstack[0]
+            n_ev_boot = plot_bootstrapstack[1]
+            bootstrap_ccdist(st, loc, dir_ro, n_bootstrap_chains, n_ev_boot)
 
         median_a, mean_a, std_a, switched, n_ev =\
             get_m_angle_switched(cc_i_ev_vs_rota, catalog, st, ccmin)
